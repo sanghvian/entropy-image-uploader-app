@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 
 const Navbar = () => {
@@ -8,7 +9,8 @@ const Navbar = () => {
             alignItems: 'center',
             height: '80px',
             backgroundColor: '#000',
-            padding: '10px 0'
+            padding: '10px 0',
+            margin: 0,
         }}>
             <img src="https://cylab-temp-testing-bucket.s3.amazonaws.com/images/ultron-logo.svg" alt="Logo" style={{ height: '50px' }} />
         </nav>

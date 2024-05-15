@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/src/store';
 import { setUser } from '@/app/src/store/userSlice';
-import { AddProduct } from '@/app/src/components/AddProduct';
 import LoginButton from '@/app/src/components/LoginButton';
 import { Button } from 'antd-mobile';
 
@@ -30,8 +29,10 @@ const Dashboard = () => {
     return (
 
         <div style={{
-            height: '100%',
+            height: '90vh',
             width: '100%',
+            backgroundColor: '#000',
+            display: 'flex',
             justifyContent: 'center',
             alignItems: 'center'
         }}>
@@ -39,7 +40,6 @@ const Dashboard = () => {
                 router.push('/products')
             }
             }>Go to Products</Button> : <LoginButton />
-
             }
         </div>
     );

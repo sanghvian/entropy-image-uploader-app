@@ -1,18 +1,29 @@
-// src/components/AddProduct.tsx
-import AddProduct from '@/app/src/components/AddProduct';
+"use client"
 import Navbar from '@/app/src/components/Navbar';
-import { store } from '@/app/src/store';
+import PageLayout from '@/app/src/components/PageLayout';
+import dynamic from 'next/dynamic'
+import ProductsList from '@/app/src/components/ProductsList';
 import React from 'react';
-import { Provider } from 'react-redux';
+
+
+const NoSSR = dynamic(() => import('../app/src/components/ProductsList'), { ssr: false })
 
 export const ProductsPage: React.FC = () => {
 
     return (
-        <Provider store={store}>
+        <PageLayout>
             <Navbar />
-            <AddProduct />
-        </Provider>
+            <div style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#000',
+                color: '#fff'
+            }}>
+                <ProductsList />
+            </div>
+        </PageLayout>
     );
 };
+
 
 export default ProductsPage;

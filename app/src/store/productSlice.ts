@@ -1,12 +1,16 @@
 // src/store/productSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+interface Product {
+    id: string;
+    name: string;
+    imageUrls: string[];
+    productBarcode: string;
+}
+
+
 interface ProductState {
-    products: Array<{
-        name: string;
-        imageUrls: string[];
-        productBarcode?: string;
-    }>,
+    products: Array<Product>,
     activeProductId: string;
 }
 
@@ -19,7 +23,7 @@ export const productSlice = createSlice({
     name: 'product',
     initialState,
     reducers: {
-        addProduct: (state, action: PayloadAction<{ name: string; imageUrls: string[] }>) => {
+        addProduct: (state, action: PayloadAction<Product>) => {
             state.products.push(action.payload);
         },
         setActiveProductId: (state, action: PayloadAction<string>) => {
@@ -28,7 +32,7 @@ export const productSlice = createSlice({
         setProductBarcode: (state, action: PayloadAction<{ productId: string, barcode: string }>) => {
             const product = state.products.find(product => product.name === action.payload.productId);
             if (product) {
-                product.productBarcode = action.payload.barcode;
+                product.id = action.payload.barcode;
             }
         },
         updateProduct(state, action: { payload: { productId: string, imageUrls: string[] } }) {
@@ -44,8 +48,8 @@ export const productSlice = createSlice({
 export const {
     addProduct,
     setActiveProductId,
-    setProductBarcode,
-    updateProduct
+    updateProduct,
+    setProductBarcode
 } = productSlice.actions;
 
 export default productSlice.reducer;

@@ -1,3 +1,4 @@
+"use client"
 // src/components/CameraComponent.tsx
 import React, { useState, useRef } from 'react';
 import { Camera } from "react-camera-pro";
@@ -18,19 +19,18 @@ const config = {
     secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET,
 };
 
-interface CameraComponentProps {
-    productName: string;
-}
 
-export const CameraComponent: React.FC<CameraComponentProps> = ({ productName }) => {
+export const CameraComponent: React.FC = () => {
     const [images, setImages] = useState<{ [key: string]: string }>({});
     const [imagePreviews, setImagePreviews] = useState<{ [key: string]: string }>({});
     const [currentView, setCurrentView] = useState(0);
     const views = ['front', 'back', 'barcode', 'top'];
     const cameraRef = useRef<any>(null);
     const dispatch = useDispatch();
-    const activeProduct = useSelector((state: RootState) => state.product.products.find((p: any) => p.name === productName));
+
     const activeProductId = useSelector((state: RootState) => state.product.activeProductId);
+    const activeProduct = useSelector((state: RootState) => state.product.products.find(product => product.id === activeProductId));
+    const productName = activeProduct?.name || '';
 
     const handleCapture = async () => {
         if (cameraRef.current) {
