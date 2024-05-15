@@ -7,19 +7,26 @@ import { Toaster } from 'react-hot-toast'
 
 const PageLayout = ({ children }: any) => {
     return (
-        <Auth0Provider
-            domain="dev-54vh7efulm7mwdr8.us.auth0.com"
-            clientId="P0BqA8aECdq02i6uYWOU1pexqGkfaI7h"
-            authorizationParams={{
-                redirect_uri: process.env.NEXT_PUBLIC_DOMAIN
-            }}
-        >
-            <Provider store={store}>
-                <Toaster />
-
-                {children}
-            </Provider>
-        </Auth0Provider>
+        <div className='root-component'>
+            <Auth0Provider
+                domain="dev-54vh7efulm7mwdr8.us.auth0.com"
+                clientId="P0BqA8aECdq02i6uYWOU1pexqGkfaI7h"
+                authorizationParams={{
+                    redirect_uri: process.env.NEXT_PUBLIC_DOMAIN
+                }}
+            >
+                <Provider store={store}>
+                    <div
+                        style={{
+                            background: '#000'
+                        }}
+                    >
+                        <Toaster />
+                        {children}
+                    </div>
+                </Provider>
+            </Auth0Provider>
+        </div>
     )
 }
 

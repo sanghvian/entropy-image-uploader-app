@@ -3,6 +3,10 @@ import CameraComponent from '@/app/src/components/CameraComponent'
 import Navbar from '@/app/src/components/Navbar'
 import PageLayout from '@/app/src/components/PageLayout'
 import React from 'react'
+import dynamic from 'next/dynamic'
+
+const NoSSR = dynamic(() => import('../app/src/components/CameraComponent'), { ssr: false })
+
 
 const CameraPage = () => {
     return (
@@ -17,7 +21,7 @@ const CameraPage = () => {
                     justifyContent: 'stretch',
                 }}
             >
-                <CameraComponent />
+                <NoSSR />
             </div>
         </PageLayout>
     )

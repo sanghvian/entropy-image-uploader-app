@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import toast from "react-hot-toast";
 import { addProduct, setActiveProductId } from "../../store/productSlice";
-import { Button, FloatButton, Input, List, Modal } from "antd";
+import { Button, Card, FloatButton, Input, List, Modal } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
 export const ProductsList = () => {
@@ -53,21 +53,48 @@ export const ProductsList = () => {
             color: '#fff'
         }}>
             <h2 style={{ textAlign: 'center', color: "#fff" }}>Products List</h2>
-            <List>
+            <div
+                style={{
+                    padding: '20px',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    rowGap: '20px',
+                    columnGap: '20px',
+
+                }}
+            >
                 {products.map((product, index) => (
-                    <List.Item key={index} onClick={() => {
-                        dispatch(setActiveProductId(product.name))
-                        router.push(`/camera`)
-                    }}>
-                        <div style={{ fontWeight: 'bold' }}>{product.name}</div>
-                        <div>Images: {product.imageUrls.length}</div>
-                        {product.productBarcode && <div>Barcode: {product.productBarcode}</div>}
-                    </List.Item>
+                    <Card
+                        style={{
+                            width: '100%',
+                        }}
+                        key={index}
+                        onClick={() => {
+                            dispatch(setActiveProductId(product.name))
+                            router.push(`/camera`)
+                        }}
+                    >
+                        <Card.Meta
+                            title={product.name}
+                            description={`Images: ${product.imageUrls.length}`}
+                        />
+                        {product.imageUrls.length > 0 && (
+                            <img
+                                src={product.imageUrls[0]}
+                                alt={product.name}
+                                style={{ width: '70%', height: 'auto' }}
+                            />
+                        )}
+                        {product.productBarcode && (
+                            <div>Barcode: {product.productBarcode}</div>
+                        )}
+                    </Card>
                 ))}
-            </List>
+            </div>
             <FloatButton icon={<PlusOutlined />} onClick={handleOpenModal} />
             <Modal
                 visible={isModalVisible}
+                closable={true}
                 title="Enter Product Name"
                 footer={[
                     <Button key="cancel" onClick={handleCloseModal}>Cancel</Button>,
@@ -81,7 +108,7 @@ export const ProductsList = () => {
                     style={{ marginBottom: '10px' }}
                 />
             </Modal>
-        </div>
+        </div >
     );
 }
 

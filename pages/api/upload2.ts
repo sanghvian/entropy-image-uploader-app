@@ -1,126 +1,65 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
-import Busboy from 'busboy';
-import { Worker } from 'worker_threads'
+import { BlobServiceClient } from "@azure/storage-blob";
+import { IncomingForm, File } from 'formidable';
+import { v4 as uuidv4 } from 'uuid';
 
-const AZURE_CONNECTION_STRING = process.env.NEXT_PUBLIC_AZURE_CONNECTION_STRING!
-const AZURE_SAS_TOKEN = process.env.NEXT_PUBLIC_AZURE_SAS_TOKEN!
-const AZURE_CONTAINER_NAME = process.env.NEXT_PUBLIC_AZURE_CONTAINER_NAME!
+const AZURE_CONNECTION_STRING = process.env.NEXT_PUBLIC_AZURE_CONNECTION_STRING!;
+const AZURE_CONTAINER_NAME = process.env.NEXT_PUBLIC_AZURE_CONTAINER_NAME!;
+console.log(AZURE_CONNECTION_STRING, AZURE_CONTAINER_NAME);
+
+export const config = {
+    api: {
+        bodyParser: false, // Required for formidable when handling "multipart/form-data"
+    }
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
-        return res.status(405).end();
+        res.status(405).send('Method Not Allowed');
+        return;
     }
 
-    const uploadPromises: Promise<any>[] = [];
-    const busboy = Busboy({ headers: req.headers, limits: { fileSize: 10 * 1024 * 1024 } });
+    const form = new IncomingForm();
 
-    busboy.on('file', function (fieldname: any, file: any, fname: any) {
+    form.parse(req, async (err, fields, files) => {
+        if (err) {
+            console.error('Error parsing the form:', err);
+            res.status(500).send("Failed to parse form");
+            return;
+        }
+
+        const fileEntries = Object.entries(files);
+        if (fileEntries.length === 0) {
+            res.status(400).send('No files were uploaded.');
+            return;
+        }
+
         const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_CONNECTION_STRING);
         const containerClient = blobServiceClient.getContainerClient(AZURE_CONTAINER_NAME);
 
-        const fileName = `${Date.now()}-${fname.filename}`;
-        const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+        const uploadPromises = fileEntries.map(async ([key, file]: any) => {
+            try {
+                const blobName = `${uuidv4()}-${file.originalFilename}`;
+                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-        const streamUploadPromise = new Promise((resolve, reject) => {
-            blockBlobClient.uploadStream(file, undefined, undefined, { blobHTTPHeaders: { blobContentType: fname.mimeType } })
-                .then(response => {
-                    // Create a URL to the uploaded blob
-                    const url = blockBlobClient.url;
-                    console.log(`Upload of '${fileName}' complete`);
-                    resolve(url);
-                })
-                .catch(error => {
-                    console.error(`Upload of '${fileName}' failed`, error);
-                    reject(error);
-                });
+                console.log(`Uploading file: ${file.filepath} as ${blobName}`);
+
+                await blockBlobClient.uploadFile(file.filepath);
+
+                console.log(`Upload successful: ${blockBlobClient.url}`);
+                return blockBlobClient.url; // Return the URL of the uploaded file
+            } catch (error: any) {
+                console.error(`Upload of file '${file.originalFilename}' failed:`, error.message);
+                throw new Error('Failed to upload file');
+            }
         });
 
-        uploadPromises.push(streamUploadPromise);
-        //     // In this case "fieldname" is "file"
-        //     // Sample "fname" object looks like this - {"filename":"IMG_0235.HEIC","encoding":"7bit","mimeType":"image/heic"}
-        //     const fileData: Buffer[] = [];
-        //     const fileName = fname.filename;
-        //     console.log(`Upload of '${fname.filename}' started`)
-        //     file.on('data', (data: any) => {
-        //         fileData.push(data);
-        //     });
-        // file.on('error', (error: any) => {
-        //     console.error('Error with file stream:', error);
-        // });
-        // file.on('end', async function () {
-        //     const worker = new Worker('./worker-upload.cjs');
-        //     const workerPromise = new Promise((resolve, reject) => {
-        //         worker.on('message', (data: any) => {
-        //             if (data.status === 'success') {
-        //                 console.log(`Upload of '${fileName}' complete`, { data })
-        //                 resolve(data);
-        //             } else {
-        //                 console.log(`Upload of '${fileName}' failed`, { error: data.error })
-        //                 reject(data.error);
-        //             }
-        //         });
-        //         worker.on('error', (err) => {
-        //             console.log(`Upload of '${fileName}' failed`, { err })
-        //             reject(err);
-        //         });
-        //     });
-        //     uploadPromises.push(workerPromise); // Push each worker promise into the array
-        //     worker.postMessage({
-        //         fileData: fileData,
-        //         fileName: fileName,
-        //         AZURE_CONNECTION_STRING: AZURE_CONNECTION_STRING,
-        //         AZURE_SAS_TOKEN: AZURE_SAS_TOKEN,
-        //         AZURE_CONTAINER_NAME: AZURE_CONTAINER_NAME,
-        //     });
-
-        //     // worker.on('message', (data: any, error: any) => {
-        //     //     if (data.status === 'success') {
-        //     //         console.log(`Upload of '${fileName}' complete`, { data })
-        //     //         // res.status(201).json({ data })
-        //     //     } else {
-        //     //         // Handle error
-        //     //         console.log(`Upload of '${fileName}' failed`, { error })
-        //     //         res.status(400).json({ error })
-
-        //     //     }
-        //     // });
-
-        //     // worker.on('error', (err) => {
-        //     //     console.log(`Upload of '${fileName}' failed`, { err })
-        //     // });
-
-        //     // worker.on('exit', (code) => {
-        //     //     if (code !== 0) {
-        //     //         console.error(`Worker stopped with exit code ${code}`);
-        //     //     }
-        //     // });
-        // });
-    });
-
-    busboy.on('finish', async function () {
         try {
-            const results = await Promise.all(uploadPromises); // Wait for all worker promises to resolve
-            console.log('Uploaded files', results);
-            return res.status(200).json({ urls: results });
+            const urls = await Promise.all(uploadPromises);
+            res.status(200).json({ urls });
         } catch (error) {
-            console.log(error);
+            console.error('Error uploading files:', error);
             res.status(500).json({ error: 'Failed to upload all files' });
         }
     });
-    busboy.on('error', function (error) {
-        console.error('Error parsing form:', error);
-        res.status(500).send("Failed to parse form");
-    });
-
-
-
-    if (req.method === 'POST') {
-        req.pipe(busboy).on('finish', busboy.end);
-    }
 }
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};

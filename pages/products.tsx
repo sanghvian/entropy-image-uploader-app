@@ -2,7 +2,6 @@
 import Navbar from '@/app/src/components/Navbar';
 import PageLayout from '@/app/src/components/PageLayout';
 import dynamic from 'next/dynamic'
-import ProductsList from '@/app/src/components/ProductsList';
 import React from 'react';
 
 
@@ -16,10 +15,10 @@ export const ProductsPage: React.FC = () => {
             <div style={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#000',
+                backgroundColor: 'red',
                 color: '#fff'
             }}>
-                <ProductsList />
+                <NoSSR />
             </div>
         </PageLayout>
     );

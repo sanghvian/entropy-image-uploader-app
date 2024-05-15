@@ -56,7 +56,6 @@ const GoogleAuth2: React.FC = () => {
             email: '',
             token: response.code
         }))
-        console.log('response', response);
     };
     const onFailure = (response: any) => {
     };

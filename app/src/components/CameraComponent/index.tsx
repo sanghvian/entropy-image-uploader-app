@@ -1,5 +1,4 @@
 "use client"
-// src/components/CameraComponent.tsx
 import React, { useState, useRef } from 'react';
 import { Camera } from "react-camera-pro";
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,6 +8,9 @@ import toast from 'react-hot-toast'; // Ensure this is imported
 import { getBarcode } from '../../utils/openai';
 import { addProduct, setProductBarcode, updateProduct } from '../../store/productSlice';
 import { RootState } from '../../store';
+import './CameraComponent.css'
+import { setImagePreviews, setImages, setImagesState } from '../../store/imagesSlice';
+import { useRouter } from 'next/navigation';
 
 // S3 Configuration
 const config = {
@@ -21,8 +23,8 @@ const config = {
 
 
 export const CameraComponent: React.FC = () => {
-    const [images, setImages] = useState<{ [key: string]: string }>({});
-    const [imagePreviews, setImagePreviews] = useState<{ [key: string]: string }>({});
+    const images = useSelector((state: RootState) => state.images.images);
+    const imagePreviews = useSelector((state: RootState) => state.images.imagePreviews);
     const [currentView, setCurrentView] = useState(0);
     const views = ['front', 'back', 'barcode', 'top'];
     const cameraRef = useRef<any>(null);
@@ -62,17 +64,33 @@ export const CameraComponent: React.FC = () => {
 
     const processImageCapture = (blob: string, imageUrl: string) => {
         const view = views[currentView];
-        setImagePreviews(prev => ({ ...prev, [view]: imageUrl }));
-        setImages(prev => ({ ...prev, [view]: blob }));
+        dispatch(setImagePreviews(
+            {
+                ...imagePreviews,
+                [view]: imageUrl
+            }
+        ));
+        dispatch(setImages(
+            {
+                ...images,
+                [view]: blob
+            }
+        ));
         setCurrentView(currentView < views.length - 1 ? currentView + 1 : 0);
     };
+    const router = useRouter();
 
     const uploadFileToS3 = async (blob: Blob, filename: string) => {
         const file = new File([blob], activeProductId + filename, { type: 'image/jpeg' });
+
         return S3.uploadFile(file, config);
     };
 
     const uploadFiles = async () => {
+        dispatch(setImagesState({
+            imagePreviews,
+            images
+        }))
         const uploadPromises = Object.entries(images).map(async ([key, blob]) => {
             const data = await uploadFileToS3(blob as any, `${productName}_${key}.jpeg`);
             return data.location;
@@ -84,30 +102,52 @@ export const CameraComponent: React.FC = () => {
         } catch (error: any) {
             console.error('Error while uploading files:', error.message);
             toast.error('Failed to upload images');
+        } finally {
+            dispatch(setImagesState({
+                imagePreviews: {},
+                images: {}
+            }))
+            // router.push(`/products`);
         }
     };
-
-    const handleRemoveImage = (view: string) => {
-        const updatedImages = { ...images };
-        const updatedPreviews = { ...imagePreviews };
-        delete updatedImages[view];
-        delete updatedPreviews[view];
-        setImages(updatedImages);
-        setImagePreviews(updatedPreviews);
-        setCurrentView(views.indexOf(view)); // Set current view to retake photo
-    };
+    const imagePreviewsLength = Object.keys(imagePreviews).length;
+    const lastImagePreviewKey = Object.keys(imagePreviews)[imagePreviewsLength - 1];
+    const lastImagePreviewSrc = Object.values(imagePreviews)[imagePreviewsLength - 1];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div className='camera-container' style={{ position: 'relative', width: '300px', height: '400px', marginBottom: '20px' }}>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            alignItems: 'center',
+            height: '90vh',
+            justifyContent: 'stretch'
+        }}>
+            <div style={{
+                position: 'relative',
+                top: '50px',
+                width: '98vw',
+                height: '700px',
+                objectFit: 'cover',
+                marginBottom: '20px'
+            }}>
                 <Camera errorMessages={{
                     noCameraAccessible: 'No camera device accessible. Please connect a camera or use a different device.',
                     permissionDenied: 'Camera permission denied. Please grant permission to use the camera.'
                 }} ref={cameraRef} />
-                <div className='camera-view-container' style={{
-                    position: 'absolute', top: '10px', left: '10px', color: '#fff', backgroundColor: 'transparent', padding: '5px', borderRadius: '5px', justifyContent: 'center', alignItems: 'center',
-                    width: '260px', display: 'flex',
-                    height: '340px',
+                <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    color: '#fff',
+                    backgroundColor: 'transparent',
+                    padding: '5px',
+                    borderRadius: '5px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '94vw',
+                    display: 'flex',
+                    height: '660px',
                     border: '2px dashed #fff'
                 }}>
 
@@ -116,28 +156,54 @@ export const CameraComponent: React.FC = () => {
                     {activeProduct?.productBarcode && <div>Barcode: {activeProduct.productBarcode}</div>}
                 </div>
             </div>
-            <Button onClick={handleCapture} disabled={Object.keys(images).length >= views.length} style={{ marginBottom: '20px', width: '150px' }}>Capture</Button>
-            <Button onClick={uploadFiles} disabled={Object.keys(images).length < views.length} style={{ marginBottom: '20px', width: '150px' }}>Done</Button>
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', marginTop: 20 }}>
-                {Object.entries(imagePreviews).map(([key, src]) => (
-                    <div key={key} style={{ margin: 10, position: 'relative' }}>
-                        <img src={src} alt={`${key} view`} style={{ width: 100, height: 100 }} />
-                        <Button
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: 'red',
-                                color: 'white',
-                                border: 'none',
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                cursor: 'pointer',
-                                zIndex: 5,
-                            }}
-                            onClick={() => handleRemoveImage(key)}
-                        >X</Button>
-                    </div>
-                ))}
+            <div
+                style={{
+                    display: 'flex',
+                    width: '100%',
+                    marginTop: '80px',
+                    alignItems: 'center',
+                }}
+            >
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    marginTop: 20,
+                    width: '300px'
+                }}>
+
+                    {lastImagePreviewKey && <div key={lastImagePreviewKey}
+                        onClick={() => router.push(`/gallery`)}
+                        style={{ margin: 10, position: 'relative' }}>
+                        <img src={lastImagePreviewSrc as any} alt={`${lastImagePreviewKey} view`} style={{ width: 100, height: 100 }} />
+                    </div>}
+                </div>
+                <div style={{
+                    width: '200px'
+                }}>
+                    <button
+                        className="camera-button"
+                        onClick={handleCapture}
+                        disabled={Object.keys(images).length >= views.length}
+                    >
+                        <span style={{ visibility: 'hidden' }}>Capture</span>
+                    </button>
+                </div>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                    <Button
+                        onClick={uploadFiles}
+                        disabled={Object.keys(images).length < views.length}
+                        style={{
+                            width: '150px',
+                        }}>
+                        Upload
+                    </Button>
+                </div>
+
             </div>
         </div>
     );
