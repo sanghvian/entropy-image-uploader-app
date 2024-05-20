@@ -11,7 +11,6 @@ const Navbar = () => {
             backgroundColor: '#000',
             padding: '10px 0',
             margin: 0,
-            width: '115vw',
         }}>
             <img src="https://cylab-temp-testing-bucket.s3.amazonaws.com/images/ultron-logo.svg" alt="Logo" style={{ height: '50px' }} />
         </nav>
