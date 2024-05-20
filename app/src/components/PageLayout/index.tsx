@@ -18,7 +18,10 @@ const PageLayout = ({ children }: any) => {
                 <Provider store={store}>
                     <div
                         style={{
-                            background: '#000'
+                            background: '#000',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: '#000',
                         }}
                     >
                         <Toaster />

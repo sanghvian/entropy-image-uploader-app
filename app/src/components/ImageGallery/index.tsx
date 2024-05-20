@@ -36,33 +36,33 @@ export const ImageGallery = () => {
     };
 
     const uploadFiles = async () => {
-        // const formData = new FormData();
-        // Object.entries(images).forEach(([key, blob]) => {
-        //     const filename = `${activeProductId}_${productName}_${key}.jpeg`; // Creating a unique filename
-        //     formData.append('file', new Blob([(blob as any)], { type: 'image/jpeg' }), filename);
-        // });
-
         const toastId = toast.loading('Uploading images...');
+        const formData = new FormData();
+        Object.entries(images).forEach(([key, blob]) => {
+            const filename = `${activeProductId}_${productName}_${key}.jpeg`; // Creating a unique filename
+            formData.append('file', new Blob([(blob as any)], { type: 'image/jpeg' }), filename);
+        });
+
         try {
             // add a sleep for 5 seconds to simulate the upload process
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            // await new Promise(resolve => setTimeout(resolve, 5000));
 
-            toast.success('Images uploaded...', { id: toastId });
-            // const response = await fetch('/api/upload2', { // Adjust the API endpoint as necessary
-            //     method: 'POST',
-            //     body: formData,
-            // });
+            const response = await fetch('/api/upload2', { // Adjust the API endpoint as necessary
+                method: 'POST',
+                body: formData,
+            });
 
-            // if (!response.ok) {
-            //     throw new Error('Failed to upload image');
-            // }
+            if (!response.ok) {
+                throw new Error('Failed to upload image');
+            }
 
-            // const data = await response.json();
-            // dispatch(updateProduct({ productId: activeProductId, imageUrls: data.urls }));
-            // toast.success('Images uploaded successfully');
+            const data = await response.json();
+            console.log(data);
+            dispatch(updateProduct({ productId: activeProductId, imageUrls: data.urls }));
+            toast.success('Images uploaded successfully', { id: toastId });
         } catch (error) {
             console.error('Error uploading images:', error);
-            toast.error('Failed to upload images');
+            toast.error('Failed to upload images', { id: toastId });
         } finally {
             dispatch(setImagesState({
                 imagePreviews: {},
@@ -92,8 +92,8 @@ export const ImageGallery = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    width: '100%',
-                    height: '100%'
+                    height: '90vh',
+                    backgroundColor: '#000',
                 }}
             >
                 {imagePreviewsLength > 0 ? <div className="gallery-container">

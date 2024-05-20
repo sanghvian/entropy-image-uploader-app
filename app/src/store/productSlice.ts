@@ -37,10 +37,13 @@ export const productSlice = createSlice({
         },
         updateProduct(state, action: { payload: { productId: string, imageUrls: string[] } }) {
             const { productId, imageUrls } = action.payload;
-            const product = state.products.find(product => product.name === productId);
+            const product = state.products.find(product => product.id === productId);
             if (product) {
                 product.imageUrls = imageUrls;
             }
+        },
+        removeProduct: (state, action: PayloadAction<string>) => {
+            state.products = state.products.filter(product => product.id !== action.payload);
         }
     },
 });
@@ -49,7 +52,8 @@ export const {
     addProduct,
     setActiveProductId,
     updateProduct,
-    setProductBarcode
+    setProductBarcode,
+    removeProduct
 } = productSlice.actions;
 
 export default productSlice.reducer;

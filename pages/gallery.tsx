@@ -9,8 +9,16 @@ const NoSSR = dynamic(() => import('../app/src/components/ImageGallery'), { ssr:
 const gallery = () => {
     return (
         <PageLayout>
-            <Navbar />
-            <NoSSR />
+            <div
+                style={{
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: '#000',
+                }}
+            >
+                <Navbar />
+                <NoSSR />
+            </div>
         </PageLayout>
     )
 }

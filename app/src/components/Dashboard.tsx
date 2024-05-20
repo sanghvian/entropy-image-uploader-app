@@ -8,6 +8,11 @@ import { AppDispatch, RootState } from '@/app/src/store';
 import { setUser } from '@/app/src/store/userSlice';
 import LoginButton from '@/app/src/components/LoginButton';
 import { Button } from 'antd-mobile';
+import ProductsList from './ProductsList';
+import PageLayout from './PageLayout';
+import dynamic from 'next/dynamic';
+
+const NoSSR = dynamic(() => import('../components/ProductsList'), { ssr: false })
 
 const Dashboard = () => {
     const dispatch: AppDispatch = useDispatch();
@@ -27,21 +32,20 @@ const Dashboard = () => {
         }
     }, [code])
     return (
+        <PageLayout>
 
-        <div style={{
-            height: '90vh',
-            width: '100%',
-            backgroundColor: '#000',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-        }}>
-            {code && (code.length > 0) ? <Button onClick={() => {
-                router.push('/products')
-            }
-            }>Go to Products</Button> : <LoginButton />
-            }
-        </div>
+            <div style={{
+                height: '90vh',
+                width: '100%',
+                backgroundColor: '#000',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                {code && (code.length > 0) ? <NoSSR /> : <LoginButton />
+                }
+            </div>
+        </PageLayout>
     );
 }
 

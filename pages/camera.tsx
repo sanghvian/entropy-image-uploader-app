@@ -12,7 +12,7 @@ const CameraPage = () => {
     return (
         <PageLayout>
             <Navbar />
-            <div
+            {/* <div
                 style={{
                     height: '90vh',
                     width: '100%',
@@ -20,9 +20,9 @@ const CameraPage = () => {
                     display: 'flex',
                     justifyContent: 'stretch',
                 }}
-            >
-                <NoSSR />
-            </div>
+            > */}
+            <NoSSR />
+            {/* </div> */}
         </PageLayout>
     )
 }

@@ -35,34 +35,27 @@
     height: 70px;
     background-color: white;
     border: 5px solid #fff;
-    /* White outer ring */
     border-radius: 50%;
-    /* Makes the button round */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-    /* Optional: adds shadow for better visibility */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     overflow: hidden;
-    /* Ensures no overflow of inner contents */
 }
 
 .camera-button::after {
     content: '';
     position: absolute;
     width: 80%;
-    /* Smaller circle percentage of the button size */
     height: 80%;
     background-color: #000;
-    /* Inner circle color */
     border-radius: 50%;
     z-index: 2;
 }
 
 .camera-button:active::after {
     width: 75%;
-    /* Slightly smaller when clicked */
     height: 75%;
 }
 

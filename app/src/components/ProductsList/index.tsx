@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import toast from "react-hot-toast";
-import { addProduct, setActiveProductId } from "../../store/productSlice";
+import { addProduct, removeProduct, setActiveProductId } from "../../store/productSlice";
 import { Button, Card, FloatButton, Input, List, Modal } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { setImagesState } from "../../store/imagesSlice";
 
 export const ProductsList = () => {
     const [productName, setProductName] = useState('');
@@ -26,6 +27,10 @@ export const ProductsList = () => {
             imageUrls: [],
             id: newProductId,
             productBarcode: ''
+        }));
+        dispatch(setImagesState({
+            imagePreviews: {},
+            images: {}
         }));
         dispatch(setActiveProductId(newProductId));
         setProductName('');
@@ -68,10 +73,20 @@ export const ProductsList = () => {
                         style={{
                             width: '100%',
                         }}
+                        actions={[
+                            <Button
+                                icon={<DeleteOutlined />}
+                                onClick={(e: any) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    dispatch(removeProduct(product.id))
+                                }}
+                            />
+                        ]}
                         key={index}
                         onClick={() => {
-                            dispatch(setActiveProductId(product.name))
-                            router.push(`/camera`)
+                            dispatch(setActiveProductId(product.id))
+                            router.push(`/products/${product.id}`)
                         }}
                     >
                         <Card.Meta

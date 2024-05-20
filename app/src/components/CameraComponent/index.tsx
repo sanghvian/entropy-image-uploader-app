@@ -86,30 +86,67 @@ export const CameraComponent: React.FC = () => {
         return S3.uploadFile(file, config);
     };
 
+    // const uploadFiles = async () => {
+    //     dispatch(setImagesState({
+    //         imagePreviews,
+    //         images
+    //     }))
+    //     const uploadPromises = Object.entries(images).map(async ([key, blob]) => {
+    //         const data = await uploadFileToS3(blob as any, `${productName}_${key}.jpeg`);
+    //         return data.location;
+    //     });
+
+    //     try {
+    //         const imageUrls = await Promise.all(uploadPromises);
+    //         dispatch(updateProduct({ productId: activeProductId, imageUrls }));
+    //     } catch (error: any) {
+    //         console.error('Error while uploading files:', error.message);
+    //         toast.error('Failed to upload images');
+    //     } finally {
+    //         dispatch(setImagesState({
+    //             imagePreviews: {},
+    //             images: {}
+    //         }))
+    //         // router.push(`/products`);
+    //     }
+    // };
+
     const uploadFiles = async () => {
-        dispatch(setImagesState({
-            imagePreviews,
-            images
-        }))
-        const uploadPromises = Object.entries(images).map(async ([key, blob]) => {
-            const data = await uploadFileToS3(blob as any, `${productName}_${key}.jpeg`);
-            return data.location;
+        const toastId = toast.loading('Uploading images...');
+        const formData = new FormData();
+        Object.entries(images).forEach(([key, blob]) => {
+            const filename = `${activeProductId}_${productName}_${key}.jpeg`; // Creating a unique filename
+            formData.append('file', new Blob([(blob as any)], { type: 'image/jpeg' }), filename);
         });
 
         try {
-            const imageUrls = await Promise.all(uploadPromises);
-            dispatch(updateProduct({ productId: activeProductId, imageUrls }));
-        } catch (error: any) {
-            console.error('Error while uploading files:', error.message);
+            // add a sleep for 5 seconds to simulate the upload process
+            // await new Promise(resolve => setTimeout(resolve, 5000));
+
+            const response = await fetch('/api/upload2', { // Adjust the API endpoint as necessary
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to upload image');
+            }
+
+            const data = await response.json();
+            dispatch(updateProduct({ productId: activeProductId, imageUrls: data.urls }));
+            toast.success('Images uploaded successfully', { id: toastId });
+        } catch (error) {
+            console.error('Error uploading images:', error);
             toast.error('Failed to upload images');
         } finally {
             dispatch(setImagesState({
                 imagePreviews: {},
                 images: {}
-            }))
-            // router.push(`/products`);
+            }));
+            router.push(`/products`);
         }
     };
+
     const imagePreviewsLength = Object.keys(imagePreviews).length;
     const lastImagePreviewKey = Object.keys(imagePreviews)[imagePreviewsLength - 1];
     const lastImagePreviewSrc = Object.values(imagePreviews)[imagePreviewsLength - 1];
@@ -126,8 +163,8 @@ export const CameraComponent: React.FC = () => {
             <div style={{
                 position: 'relative',
                 top: '50px',
-                width: '98vw',
-                height: '700px',
+                width: '96vw',
+                height: '600px',
                 objectFit: 'cover',
                 marginBottom: '20px'
             }}>
@@ -141,13 +178,13 @@ export const CameraComponent: React.FC = () => {
                     left: '10px',
                     color: '#fff',
                     backgroundColor: 'transparent',
-                    padding: '5px',
+                    // padding: '5px',
                     borderRadius: '5px',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    width: '94vw',
+                    width: '90vw',
                     display: 'flex',
-                    height: '660px',
+                    height: '550px',
                     border: '2px dashed #fff'
                 }}>
 
@@ -198,7 +235,8 @@ export const CameraComponent: React.FC = () => {
                         onClick={uploadFiles}
                         disabled={Object.keys(images).length < views.length}
                         style={{
-                            width: '150px',
+                            width: '110px',
+                            margin: '1rem'
                         }}>
                         Upload
                     </Button>
