@@ -84,7 +84,6 @@ export const ImageGallery = () => {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 alignItems: 'stretch',
-                height: '90vh'
             }}
         >
             <div
@@ -92,8 +91,6 @@ export const ImageGallery = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    height: '90vh',
-                    backgroundColor: '#000',
                 }}
             >
                 {imagePreviewsLength > 0 ? <div className="gallery-container">

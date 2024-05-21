@@ -168,10 +168,12 @@ export const CameraComponent: React.FC = () => {
                 objectFit: 'cover',
                 marginBottom: '20px'
             }}>
-                <Camera errorMessages={{
-                    noCameraAccessible: 'No camera device accessible. Please connect a camera or use a different device.',
-                    permissionDenied: 'Camera permission denied. Please grant permission to use the camera.'
-                }} ref={cameraRef} />
+                <Camera
+                    facingMode='environment'
+                    errorMessages={{
+                        noCameraAccessible: 'No camera device accessible. Please connect a camera or use a different device.',
+                        permissionDenied: 'Camera permission denied. Please grant permission to use the camera.'
+                    }} ref={cameraRef} />
                 <div style={{
                     position: 'absolute',
                     top: '10px',
@@ -184,7 +186,7 @@ export const CameraComponent: React.FC = () => {
                     alignItems: 'center',
                     width: '90vw',
                     display: 'flex',
-                    height: '550px',
+                    height: '500px',
                     border: '2px dashed #fff'
                 }}>
 
