@@ -91,6 +91,7 @@ export const ImageGallery = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
+                    padding: '1rem'
                 }}
             >
                 {imagePreviewsLength > 0 ? <div className="gallery-container">
